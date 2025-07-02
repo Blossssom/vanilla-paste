@@ -1,0 +1,69 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+@tailwind utilities;
+
+@theme {
+  --color-midnight: #090040;
+}
+
+@layer component {
+  .gradient-wrapper {
+    width: 100%;
+    height: 100%;
+    max-width: 40%;
+    min-height: 170%;
+    opacity: 0.5;
+    filter: blur(100px);
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+
+  .gradient-item {
+    width: 70%;
+    max-width: 70%;
+    min-height: 70%;
+    min-width: 70%;
+    position: absolute;
+    border-radius: 100000px;
+
+    > .first {
+      background: #6923ff;
+    }
+
+    &-second {
+      background-color: #1766ff;
+      bottom: 0;
+      right: 0;
+    }
+
+    &-third {
+      background-color: #ff4895;
+      z-index: 1;
+      top: -41px;
+      right: -112px;
+    }
+  }
+}
+/* 
+@layer components {
+  .gradient-wrapper {
+    @apply w-full h-full max-w-40% min-h-170% opacity-50 filter blur-100px absolute bottom-0 right-0;
+  }
+
+  .gradient-item {
+    @apply w-70% max-w-70% min-h-70% min-w-70% absolute rounded-full;
+
+    &.first {
+      @apply bg-purple-700;
+    }
+
+    &.second {
+      @apply bg-purple-500;
+    }
+
+    &.third {
+      @apply bg-purple-300;
+    }
+  }
+} */

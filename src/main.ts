@@ -1,5 +1,5 @@
 import { App } from "./App";
-import "./style.css";
+import "./index.css";
 import "./monacoWorker";
 
 document.addEventListener("DOMContentLoaded", async () => {

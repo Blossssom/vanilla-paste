@@ -19,13 +19,13 @@ export class Editor extends Component<EditorProps, EditorState> {
     this.editorId = `monaco-${Date.now()}-${Math.random()
       .toString(36)
       .substr(2, 9)}`;
+    this.languages = monaco.languages.getLanguages();
   }
 
   template(): string {
     return /*html */ `
       <div id='selector-container'></div>
       <div id="${this.editorId}" style="height: 400px; width: 100%;">
-        <!-- Monaco Editor will be rendered here -->
       </div>
     `;
   }
@@ -60,8 +60,6 @@ export class Editor extends Component<EditorProps, EditorState> {
   }
 
   protected mountChildren(): void {
-    this.languages = monaco.languages.getLanguages();
-
     this.addChild(
       Selector,
       {
