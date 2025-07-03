@@ -10,20 +10,16 @@ export class Selector extends Component<SelectorProps> {
     super(props);
   }
 
-  protected onMounted(): void | Promise<void> {
-    console.log("Selector mounted :", this.$container, this.props);
-  }
-
   template(): string {
     const selectedOption = this.props.selected || this.props.options[0];
 
     return /*html */ `
-        <div class="selector">
-            <select class="form-select" id="language-selector">
+        <div class="w-full">
+            <select class="w-full border-0" id="language-selector">
             ${this.props.options
               .map(
                 (option) => `
-                <option value="${option}" ${
+                <option class="w-full text-gray-900" value="${option}" ${
                   option === selectedOption ? "selected" : ""
                 }>${option}</option>
             `
@@ -41,7 +37,6 @@ export class Selector extends Component<SelectorProps> {
     if (selectElement) {
       selectElement.addEventListener("change", (event) => {
         const selectedValue = (event.target as HTMLSelectElement).value;
-        console.log("evnet" + selectedValue);
         if (this.props.onChange) {
           this.props.onChange(selectedValue);
         }

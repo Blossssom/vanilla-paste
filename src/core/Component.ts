@@ -16,10 +16,14 @@ export abstract class Component<
   protected children: Map<string, Component> = new Map();
   private isMounted: boolean = false;
   private isFirstRender: boolean = true;
+  private prevState: S | null = null;
+  private updateScheduled: boolean = false;
 
   constructor(props: P = {} as P) {
     this.props = props;
     this.state = {} as S;
+    this.prevState = { ...this.state };
+
     this.isMounted = false;
     this.isFirstRender = true;
     this.created();
@@ -96,14 +100,27 @@ export abstract class Component<
   }
 
   private performUpdate(): void {
+    if (!this.hasStateChanged()) {
+      return;
+    }
+
     this.updateDynamicContent();
     this.updateChildComponents();
-    this.rebindEvents();
+
+    if (this.shouldRebindEvents()) {
+      this.rebindEvents();
+    }
+
+    this.prevState = { ...this.state };
+  }
+
+  private hasStateChanged(): boolean {
+    return JSON.stringify(this.state) !== JSON.stringify(this.prevState);
   }
 
   protected updateChildComponents(): void {
-    this.children.forEach((child, key) => {
-      if (this.shouldUpdateChild(key)) {
+    this.children.forEach((child, _) => {
+      if (this.shouldUpdateChild()) {
         child.update();
       }
     });
@@ -117,7 +134,7 @@ export abstract class Component<
    * @description 자식 컴포넌트의 업데이트 여부를 결정하는 메서드
    *
    */
-  protected shouldUpdateChild(key: string): boolean {
+  protected shouldUpdateChild(): boolean {
     return true;
   }
 
@@ -127,8 +144,14 @@ export abstract class Component<
    */
   protected setState(newState: Partial<S>): void {
     this.state = { ...this.state, ...newState };
-    if (this.isMounted) {
-      this.update();
+    if (this.isMounted && !this.updateScheduled) {
+      console.log("State updated:", this.state);
+      this.updateScheduled = true;
+
+      Promise.resolve().then(() => {
+        this.updateScheduled = false;
+        this.update();
+      });
     }
   }
 
@@ -280,6 +303,10 @@ export abstract class Component<
    * 사용하는 컴포넌트에서 오버라이드하여 새로운 자식 컴포넌트를 마운트할 수 있음
    */
   protected mountNewChildren(): void {}
+
+  protected shouldRebindEvents(): boolean {
+    return false;
+  }
 
   /**
    * @description 이벤트를 다시 바인딩

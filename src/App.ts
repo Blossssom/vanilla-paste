@@ -30,11 +30,11 @@ export class App extends Component {
   template(): string {
     return /*html*/ `
         <div class="w-full h-full flex flex-col items-center relative">
-            <main class="w-full max-w-5xl">
+            <main class="w-full max-w-5xl relative">
               <div class="gradient-wrapper">
                 <div class="gradient-item first"></div>
-                <div class="gradient-item-second"></div>
-                <div class="gradient-item-third"></div>
+                <div class="gradient-item second"></div>
+                <div class="gradient-item third"></div>
               </div>
               <div id="router-provider">
                   

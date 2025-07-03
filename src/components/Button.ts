@@ -10,8 +10,8 @@ export class Button extends Component<ButtonProps> {
   }
 
   template(): string {
-    return `
-        <button class="test-button">Click!!!</button>
+    return /*html */ `
+        <button class="px-6 py-2  bg-blue-500">Click!!!</button>
       `;
   }
 

@@ -4,6 +4,7 @@
 
 @theme {
   --color-midnight: #090040;
+  --color-input__bg: #1e1e1e;
 }
 
 @layer component {
@@ -12,36 +13,49 @@
     height: 100%;
     max-width: 40%;
     min-height: 170%;
+    z-index: -1;
     opacity: 0.5;
     filter: blur(100px);
     position: absolute;
     bottom: 0;
     right: 0;
+    transform-style: preserve-3d;
+    will-change: transform;
+    animation: continuousRotate 16s linear infinite;
   }
 
   .gradient-item {
     width: 70%;
     max-width: 70%;
+    max-height: 70%;
     min-height: 70%;
     min-width: 70%;
     position: absolute;
     border-radius: 100000px;
+  }
+  .first {
+    background-color: #ff4895;
+    z-index: 1;
+    top: -41px;
+    right: -112px;
+  }
 
-    > .first {
-      background: #6923ff;
+  .second {
+    background-color: #1766ff;
+    bottom: 0;
+    right: 0;
+  }
+
+  .third {
+    background: #6923ff;
+  }
+
+  @keyframes continuousRotate {
+    from {
+      transform: rotate(0deg);
     }
-
-    &-second {
-      background-color: #1766ff;
-      bottom: 0;
-      right: 0;
-    }
-
-    &-third {
-      background-color: #ff4895;
-      z-index: 1;
-      top: -41px;
-      right: -112px;
+    to {
+      transform: rotate(360deg);
     }
   }
 }
