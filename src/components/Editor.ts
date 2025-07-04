@@ -38,10 +38,9 @@ export class Editor extends Component<EditorProps, EditorState> {
       if (!container) {
         throw new Error("Editor container not found");
       }
-
       this.editor = monaco.editor.create(container as HTMLElement, {
         value: this.props.value || "// Type your code here",
-        language: this.props.language || "javascript",
+        language: this.props.language || "",
         theme: "vs-dark",
       });
 
@@ -59,6 +58,15 @@ export class Editor extends Component<EditorProps, EditorState> {
 
   protected async onMounted(): Promise<void> {
     await this.initMonacoEditor();
+  }
+
+  protected onUpdate(): void | Promise<void> {
+    if (this.editor) {
+      monaco.editor.setModelLanguage(
+        this.editor.getModel() as monaco.editor.ITextModel,
+        this.props.language || "javascript"
+      );
+    }
   }
 
   protected cleanUp(): void {

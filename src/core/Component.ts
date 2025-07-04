@@ -6,6 +6,13 @@ interface ComponentState {
   [key: string]: any;
 }
 
+interface EventListenerInfo {
+  element: Element | Document | Window;
+  event: string;
+  handler: EventListener;
+  options?: AddEventListenerOptions;
+}
+
 export abstract class Component<
   P extends ComponentProps = {},
   S extends ComponentState = {}
@@ -16,16 +23,24 @@ export abstract class Component<
   protected children: Map<string, Component> = new Map();
   private isMounted: boolean = false;
   private isFirstRender: boolean = true;
-  private prevState: S | null = null;
+  private prevProps: P | null = null;
   private updateScheduled: boolean = false;
+  private chagedStateKeys: Set<keyof S> = new Set();
+
+  // 이벤트 관리
+  private abortController: AbortController | null = null;
+  private eventListeners: EventListenerInfo[] = [];
+  private timers: Set<number | NodeJS.Timeout> = new Set();
+  private animationFrames: Set<number> = new Set();
 
   constructor(props: P = {} as P) {
     this.props = props;
+    this.prevProps = { ...this.props };
     this.state = {} as S;
-    this.prevState = { ...this.state };
-
     this.isMounted = false;
     this.isFirstRender = true;
+
+    this.abortController = new AbortController();
     this.created();
   }
 
@@ -57,6 +72,7 @@ export abstract class Component<
       console.warn("Component is not mounted.");
       return;
     }
+    this.cleanUpResources();
     this.cleanUp();
     this.children.forEach((child) => child.unmount());
     this.children.clear();
@@ -100,22 +116,27 @@ export abstract class Component<
   }
 
   private performUpdate(): void {
-    if (!this.hasStateChanged()) {
+    if (!this.hasStateChanged() && !this.hasPropsChanged()) {
       return;
     }
-
     this.updateDynamicContent();
-    this.updateChildComponents();
+    this.mountChildren();
+    // this.updateChildComponents();
 
     if (this.shouldRebindEvents()) {
       this.rebindEvents();
     }
 
-    this.prevState = { ...this.state };
+    this.prevProps = { ...this.props };
+    this.chagedStateKeys.clear();
   }
 
   private hasStateChanged(): boolean {
-    return JSON.stringify(this.state) !== JSON.stringify(this.prevState);
+    return this.chagedStateKeys.size > 0;
+  }
+
+  private hasPropsChanged(): boolean {
+    return JSON.stringify(this.props) !== JSON.stringify(this.prevProps);
   }
 
   protected updateChildComponents(): void {
@@ -143,9 +164,19 @@ export abstract class Component<
    * @param newState - 업데이트할 상태의 부분 객체
    */
   protected setState(newState: Partial<S>): void {
+    const updateKeys = Object.keys(newState) as (keyof S)[];
+    updateKeys.forEach((key) => {
+      if (this.state[key] !== newState[key]) {
+        this.chagedStateKeys.add(key);
+      }
+    });
+
     this.state = { ...this.state, ...newState };
-    if (this.isMounted && !this.updateScheduled) {
-      console.log("State updated:", this.state);
+    if (
+      this.isMounted &&
+      !this.updateScheduled &&
+      this.chagedStateKeys.size > 0
+    ) {
       this.updateScheduled = true;
 
       Promise.resolve().then(() => {
@@ -162,6 +193,7 @@ export abstract class Component<
    */
   protected update(): void {
     this.render();
+    this.onUpdate();
   }
 
   /**
@@ -185,11 +217,16 @@ export abstract class Component<
     const childKey = key || `${childComponent.name}-${Date.now()}`;
 
     if (this.children.has(childKey)) {
-      this.children.get(childKey)?.unmount();
+      const existChild = this.children.get(childKey) as T;
+
+      existChild.props = { ...existChild.props, ...props };
+      existChild.update();
+      return existChild;
     }
 
+    const parentContainer = parentElement as HTMLElement;
     const childContainer = new childComponent(props);
-    childContainer.mount(parentElement as HTMLElement);
+    childContainer.mount(parentContainer);
     this.children.set(childKey, childContainer);
     return childContainer;
   }
@@ -274,10 +311,84 @@ export abstract class Component<
     }
   }
 
-  protected batchUpdate(updates: Array<() => void>): void {
-    requestAnimationFrame(() => {
-      updates.forEach((update) => update());
+  /**
+   * @param eventInfo - 이벤트 리스너 정보 객체
+   * @description 안전하게 이벤트 리스너를 추가
+   * 이 메서드는 AbortController를 사용하여 이벤트 리스너를 안전하게 추가
+   */
+  protected addEventListenerSafe(eventInfo: EventListenerInfo) {
+    const { element, options, event, handler } = eventInfo;
+
+    if (!this.abortController) {
+      console.warn("AbortController is not initialized.");
+    }
+
+    const safeOptions = this.abortController
+      ? { ...options, signal: this.abortController.signal }
+      : options;
+    element.addEventListener(event, handler, safeOptions);
+    this.eventListeners.push({
+      element,
+      event,
+      handler,
+      options,
     });
+  }
+
+  private addTimeoutSafe(
+    callback: () => void,
+    delay: number
+  ): number | NodeJS.Timeout {
+    const timerId = setTimeout(() => {
+      console.log(`Timeout executed after ${delay}ms ${timerId}`);
+      callback();
+    }, delay);
+    this.timers.add(timerId);
+
+    return timerId;
+  }
+
+  /**
+   * @description 컴포넌트의 리소스를 정리
+   * 이 메서드는 컴포넌트가 언마운트될 때 호출
+   */
+  private cleanUpResources(): void {
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
+
+    this.clearEventListeners();
+    this.clearTimers();
+    this.clearAnimationFrames();
+  }
+
+  private clearEventListeners(): void {
+    this.eventListeners.forEach(({ element, event, handler }) => {
+      try {
+        element.removeEventListener(event, handler);
+      } catch (err) {
+        console.error(`Failed to remove event listener for ${event}:`, err);
+      }
+    });
+    this.eventListeners = [];
+  }
+
+  private clearTimers(): void {
+    this.timers.forEach((timerId) => {
+      clearTimeout(timerId);
+      clearInterval(timerId);
+    });
+
+    this.timers.clear();
+  }
+
+  private clearAnimationFrames(): void {
+    this.animationFrames.forEach((frameId) => {
+      cancelAnimationFrame(frameId);
+    });
+
+    this.animationFrames.clear();
   }
 
   /**
@@ -319,6 +430,8 @@ export abstract class Component<
    * 사용하는 컴포넌트에서 오버라이드하여 마운트 작업을 수행
    */
   protected onMounted(): void | Promise<void> {}
+
+  protected onUpdate(): void | Promise<void> {}
 
   /**
    * @description 컴포넌트 생성 작업

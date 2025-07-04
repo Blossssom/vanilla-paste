@@ -49,13 +49,11 @@ export class MainPage extends Component<{}, MainPageState> {
   }
 
   protected created(): void {
-    console.log("MainPage component created");
     try {
       const languages = monaco.languages.getLanguages();
       this.setState({
         language: languages.length > 0 ? languages[0].id : "javascript",
       });
-      console.log("Available languages:", languages, this.state);
     } catch (err) {
       console.error("Error during component creation:", err);
     }
@@ -68,7 +66,6 @@ export class MainPage extends Component<{}, MainPageState> {
   }
 
   protected mountChildren(): void {
-    console.log("Mounting child components in MainPage", this.state);
     this.addChild(
       Editor,
       {
@@ -108,6 +105,12 @@ export class MainPage extends Component<{}, MainPageState> {
     this.setState({
       code: newValue,
     });
+  }
+
+  protected cleanUp(): void {
+    document
+      .querySelector("#create-button__paste")
+      ?.removeEventListener("click", this.createButtonHandler);
   }
 
   protected bindEvents(): void {
