@@ -1,7 +1,7 @@
 import { Component } from "@/core/Component";
 
 interface SelectorProps {
-  options: string[];
+  options: Record<string, any>[];
   selected?: string;
   onChange?: (selected: string) => void;
 }
@@ -19,9 +19,9 @@ export class Selector extends Component<SelectorProps> {
             ${this.props.options
               .map(
                 (option) => `
-                <option class="w-full text-gray-900" value="${option}" ${
-                  option === selectedOption ? "selected" : ""
-                }>${option}</option>
+                <option class="w-full text-gray-900" value="${option.value}" ${
+                  option.value === selectedOption ? "selected" : ""
+                }>${option.label}</option>
             `
               )
               .join("")}

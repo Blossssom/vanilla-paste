@@ -121,7 +121,6 @@ export abstract class Component<
     }
     this.updateDynamicContent();
     this.mountChildren();
-    // this.updateChildComponents();
 
     if (this.shouldRebindEvents()) {
       this.rebindEvents();
@@ -137,16 +136,6 @@ export abstract class Component<
 
   private hasPropsChanged(): boolean {
     return JSON.stringify(this.props) !== JSON.stringify(this.prevProps);
-  }
-
-  protected updateChildComponents(): void {
-    this.children.forEach((child, _) => {
-      if (this.shouldUpdateChild()) {
-        child.update();
-      }
-    });
-
-    this.mountNewChildren();
   }
 
   /**
@@ -171,6 +160,7 @@ export abstract class Component<
       }
     });
 
+    console.log("prev state:", this.state);
     this.state = { ...this.state, ...newState };
     if (
       this.isMounted &&
@@ -335,17 +325,33 @@ export abstract class Component<
     });
   }
 
-  private addTimeoutSafe(
+  protected addTimeoutSafe(
     callback: () => void,
     delay: number
   ): number | NodeJS.Timeout {
     const timerId = setTimeout(() => {
-      console.log(`Timeout executed after ${delay}ms ${timerId}`);
+      this.timers.delete(timerId);
       callback();
     }, delay);
     this.timers.add(timerId);
 
     return timerId;
+  }
+
+  protected addInterval(
+    callback: () => void,
+    delay: number
+  ): number | NodeJS.Timeout {
+    const intervalId = setInterval(callback, delay);
+    this.timers.add(intervalId);
+    return intervalId;
+  }
+
+  protected clearTimeoutSafe(timerId: number | NodeJS.Timeout): void {
+    if (this.timers.has(timerId)) {
+      clearTimeout(timerId);
+      this.timers.delete(timerId);
+    }
   }
 
   /**
@@ -408,12 +414,6 @@ export abstract class Component<
    * 사용하는 컴포넌트에서 오버라이드하여 동적 콘텐츠를 업데이트할 수 있음
    */
   protected updateDynamicContent(): void {}
-
-  /**
-   * @description 새로운 자식 컴포넌트를 마운트
-   * 사용하는 컴포넌트에서 오버라이드하여 새로운 자식 컴포넌트를 마운트할 수 있음
-   */
-  protected mountNewChildren(): void {}
 
   protected shouldRebindEvents(): boolean {
     return false;

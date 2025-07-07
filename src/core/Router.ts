@@ -10,7 +10,7 @@ interface RouteInfo {
 
 export interface RouteConfig {
   path: string;
-  component: new (props?: any) => Component;
+  component: new (props?: any) => Component<any, any>;
   name?: string;
   meta?: Record<string, any>;
   exact?: boolean;
@@ -103,10 +103,12 @@ export class Router {
 
     if (this.currentComponent) {
       this.currentComponent.unmount();
+      this.currentComponent = null;
     }
 
     try {
       this.currentComponent = new matchedRoute.component();
+      console.log(this.currentComponent);
       this.currentComponent.mount(this.$container!);
       this.currentRoute = newRouteInfo;
 
@@ -252,7 +254,7 @@ export class Router {
    *
    * @returns query 스트링을 포함한 현재 경로
    */
-  private getCurrentPath(): string {
+  public getCurrentPath(): string {
     return window.location.pathname + window.location.search;
   }
 
@@ -269,7 +271,13 @@ export class Router {
   }
 
   public push(path: string): void {
+    if (this.getCurrentPath() === path) {
+      console.log("inner if");
+      return;
+    }
+
     window.history.pushState(null, "", path);
+    this.handleRouteChange();
   }
 
   public replace(path: string): void {

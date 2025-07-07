@@ -1,6 +1,7 @@
 import { Component } from "./core/Component";
 import { createRouter } from "./core/Router";
 import { routerList } from "@/constant/routerList";
+import { Header } from "@/components/Header";
 
 export class App extends Component {
   private router = createRouter(document.createElement("div"));
@@ -10,6 +11,8 @@ export class App extends Component {
 
   protected mountChildren(): void {
     this.setupRouter();
+
+    this.addChild(Header, {}, "#header", "header");
   }
 
   private setupRouter(): void {
@@ -30,6 +33,8 @@ export class App extends Component {
   template(): string {
     return /*html*/ `
         <div class="w-full h-full flex flex-col items-center relative">
+            <div id="header" class="w-full max-w-5xl">
+            </div>
             <main class="w-full max-w-5xl relative">
               <div class="gradient-wrapper">
                 <div class="gradient-item first"></div>

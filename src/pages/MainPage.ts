@@ -3,16 +3,21 @@ import { Editor } from "@/components/Editor";
 import { Button } from "@/components/Button";
 import { monaco } from "@/monacoWorker";
 import { Selector } from "@/components/Selector";
+import { expiredOptions } from "@/constant/options";
+import { apiService } from "@/services/apiService";
 
 interface MainPageState {
   isLoading: boolean;
   code: string;
   language: string;
+  expired: number;
+  title: string;
 }
 
 export class MainPage extends Component<{}, MainPageState> {
   private availableLanguages: monaco.languages.ILanguageExtensionPoint[] = [];
   private placeholder: string = "Enter your paste title here";
+  private codeChangeTimerId: number | NodeJS.Timeout | null = null;
 
   constructor() {
     super();
@@ -20,6 +25,8 @@ export class MainPage extends Component<{}, MainPageState> {
       isLoading: true,
       code: "// Type your code here",
       language: "",
+      expired: 1,
+      title: "",
     };
     this.availableLanguages = monaco.languages.getLanguages();
   }
@@ -31,12 +38,17 @@ export class MainPage extends Component<{}, MainPageState> {
           <div class="flex justify-between items-center gap-4">
             <div class="w-full flex-1 flex flex-col gap-2 items-start">
               <label>Title paste</label>
-              <input type="text" class="w-full bg-input__bg border-gray-400 border p-2" placeholder='${this.placeholder}' />
+              <input id="paste-input__title" autocomplete="off" type="text" class="w-full bg-input__bg border-gray-400 border p-2" placeholder='${this.placeholder}' />
             </div>
             <div class="w-full flex-1 flex flex-col gap-2 items-start">
               <label for="language-selector">Language</label>
               <div id="language-selector" class="w-full bg-input__bg border-gray-400 border p-2">
               </div>  
+            </div>
+            <div class="w-full flex-1 flex flex-col gap-2 items-start">
+              <label for="expired-selector">Expired</label>
+              <div id="expired-selector" class="w-full bg-input__bg border-gray-400 border p-2">
+              </div>
             </div>
           </div>
           <div id="monaco-container" class="h-full w-full text-left">
@@ -52,7 +64,7 @@ export class MainPage extends Component<{}, MainPageState> {
     try {
       const languages = monaco.languages.getLanguages();
       this.setState({
-        language: languages.length > 0 ? languages[0].id : "javascript",
+        language: languages.length > 0 ? languages[0].id : "plaintext",
       });
     } catch (err) {
       console.error("Error during component creation:", err);
@@ -63,6 +75,14 @@ export class MainPage extends Component<{}, MainPageState> {
     this.setState({
       language: newLanguage,
     });
+  }
+
+  private expiredChangeHandler(newExpired: number): void {
+    this.setState({
+      expired: newExpired,
+    });
+
+    console.log("Expired changed to:", this.state);
   }
 
   protected mountChildren(): void {
@@ -83,37 +103,63 @@ export class MainPage extends Component<{}, MainPageState> {
     this.addChild(
       Selector,
       {
-        options: this.availableLanguages.map((lang) => lang.id),
+        options: this.availableLanguages.map((lang) => ({
+          label: lang.id,
+          value: lang.id,
+        })),
         onChange: this.languageChangeHandler.bind(this),
       },
       "#language-selector",
       "language-selector"
     );
 
-    this.addChild(Button, {}, "#create-button__paste", "create-button__paste");
-  }
+    this.addChild(
+      Selector,
+      {
+        options: expiredOptions,
+        onChange: this.expiredChangeHandler.bind(this),
+      },
+      "#expired-selector",
+      "expired-selector"
+    );
 
-  private createButtonHandler(): void {
-    document
-      .querySelector("#create-button__paste")
-      ?.addEventListener("click", () => {
-        console.log(JSON.stringify(this.state.code));
-      });
+    this.addChild(
+      Button,
+      {
+        onClick: this.handleCreateButtonClick.bind(this),
+        text: "Create",
+      },
+      "#create-button__paste",
+      "create-button__paste"
+    );
   }
 
   private changeCodeHandler(newValue: string): void {
-    this.setState({
-      code: newValue,
-    });
+    if (this.codeChangeTimerId) {
+      this.clearTimeoutSafe(this.codeChangeTimerId);
+    }
+
+    this.codeChangeTimerId = this.addTimeoutSafe(() => {
+      this.setState({
+        code: newValue,
+      });
+    }, 300);
   }
 
-  protected cleanUp(): void {
-    document
-      .querySelector("#create-button__paste")
-      ?.removeEventListener("click", this.createButtonHandler);
-  }
-
-  protected bindEvents(): void {
-    this.createButtonHandler();
+  private async handleCreateButtonClick(): Promise<void> {
+    const titleInput = document.getElementById(
+      "paste-input__title"
+    ) as HTMLInputElement;
+    try {
+      apiService.post("/paste", {
+        content: this.state.code,
+        expire: this.state.expired,
+        language: this.state.language,
+        title: titleInput.value,
+      });
+    } catch (error) {
+      alert("Failed to create paste. Please try again.");
+      throw new Error("Failed to create paste");
+    }
   }
 }
