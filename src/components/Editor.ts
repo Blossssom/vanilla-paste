@@ -4,6 +4,7 @@ import { monaco } from "@/monacoWorker";
 interface EditorProps {
   value?: string;
   language?: string;
+  readonly?: boolean;
   changeCode?: (code: string) => void;
 }
 
@@ -22,13 +23,12 @@ export class Editor extends Component<EditorProps, EditorState> {
 
   template(): string {
     return /*html */ `
-      <div class="w-full flex flex-col gap-2">
+      <div class="w-full h-full flex flex-col gap-2">
         <div class="w-full flex-1 flex flex-col gap-2">
           <label for="${this.editorId}">Code Editor</label>
-          <div id="${this.editorId}" style="height: 400px; width: 100%;" class=" border-gray-400 border">
+          <div id="${this.editorId}" style="height: 100%; width: 100%;" class=" border-gray-400 border">
         </div>
       </div>
-
     `;
   }
 
@@ -40,7 +40,7 @@ export class Editor extends Component<EditorProps, EditorState> {
       }
       this.editor = monaco.editor.create(container as HTMLElement, {
         value: this.props.value || "// Type your code here",
-        language: this.props.language,
+        language: this.props.language || "plaintext",
         theme: "vs-dark",
       });
 
@@ -66,6 +66,11 @@ export class Editor extends Component<EditorProps, EditorState> {
         this.editor.getModel() as monaco.editor.ITextModel,
         this.props.language || "plaintext"
       );
+
+      if (this.props.readonly) {
+        this.editor.updateOptions({ readOnly: true });
+        this.editor.setValue(this.props.value || "// Type your code here");
+      }
     }
   }
 

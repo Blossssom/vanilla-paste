@@ -5,6 +5,8 @@ import { monaco } from "@/monacoWorker";
 import { Selector } from "@/components/Selector";
 import { expiredOptions } from "@/constant/options";
 import { apiService } from "@/services/apiService";
+import logoImage from "@/assets/images/dropnote_logo.png";
+import { useRouter } from "@/core/Router";
 
 interface MainPageState {
   isLoading: boolean;
@@ -14,10 +16,15 @@ interface MainPageState {
   title: string;
 }
 
+/**
+ * @Check - max kb 지정 필요 (128kb?)
+ */
+
 export class MainPage extends Component<{}, MainPageState> {
   private availableLanguages: monaco.languages.ILanguageExtensionPoint[] = [];
   private placeholder: string = "Enter your paste title here";
   private codeChangeTimerId: number | NodeJS.Timeout | null = null;
+  private router = useRouter();
 
   constructor() {
     super();
@@ -34,33 +41,44 @@ export class MainPage extends Component<{}, MainPageState> {
   template(): string {
     return /*html */ `
       <section class="w-full py-14">
-        <div class="w-full h-full flex flex-col gap-4">
-          <div class="flex justify-between items-center gap-4">
-            <div class="w-full flex-1 flex flex-col gap-2 items-start">
-              <label>Title paste</label>
-              <input id="paste-input__title" autocomplete="off" type="text" class="w-full bg-input__bg border-gray-400 border p-2" placeholder='${this.placeholder}' />
+        <div class="w-full h-full flex flex-col gap-10">
+          <div class="flex flex-col items-center gap-4">
+            <img id="logo-img" class="object-containj w-24" />
+            <div class="flex flex-col items-center gap-2">
+              <h2 class="text-4xl font-bold">DROP NOTE</h2>
+              <p class="text-gray-600">Share your code snippets easily!</p>
             </div>
-            <div class="w-full flex-1 flex flex-col gap-2 items-start">
-              <label for="language-selector">Language</label>
-              <div id="language-selector" class="w-full bg-input__bg border-gray-400 border p-2">
-              </div>  
-            </div>
-            <div class="w-full flex-1 flex flex-col gap-2 items-start">
-              <label for="expired-selector">Expired</label>
-              <div id="expired-selector" class="w-full bg-input__bg border-gray-400 border p-2">
+          </div>
+          <article class="w-full h-full flex flex-col gap-4">
+            <div class="flex justify-between items-center gap-4">
+              <div class="w-full flex-1 flex flex-col gap-2 items-start">
+                <label>Title paste</label>
+                <input id="paste-input__title" autocomplete="off" type="text" class="w-full bg-input__bg border-gray-400 border p-2" placeholder='${this.placeholder}' />
+              </div>
+              <div class="w-full flex-1 flex flex-col gap-2 items-start">
+                <label for="language-selector">Language</label>
+                <div id="language-selector" class="w-full bg-input__bg border-gray-400 border p-2">
+                </div>  
+              </div>
+              <div class="w-full flex-1 flex flex-col gap-2 items-start">
+                <label for="expired-selector">Expired</label>
+                <div id="expired-selector" class="w-full bg-input__bg border-gray-400 border p-2">
+                </div>
               </div>
             </div>
-          </div>
-          <div id="monaco-container" class="h-full w-full text-left">
-          </div>
-          <div id="create-button__paste" class="w-full flex justify-end">
-          </div>
+            <div id="monaco-container" class="w-full h-[400px] text-left">
+            </div>
+            <div id="create-button__paste" class="w-full flex justify-end">
+            </div>
+          </article>
         </div>
       </section>
     `;
   }
 
-  protected created(): void {
+  protected onMounted(): void | Promise<void> {
+    document.querySelector<HTMLImageElement>("#logo-img")!.src = logoImage;
+
     try {
       const languages = monaco.languages.getLanguages();
       this.setState({
@@ -151,12 +169,19 @@ export class MainPage extends Component<{}, MainPageState> {
       "paste-input__title"
     ) as HTMLInputElement;
     try {
-      apiService.post("/paste", {
+      const response = await apiService.post("/paste", {
         content: this.state.code,
         expire: this.state.expired,
         language: this.state.language,
         title: titleInput.value,
       });
+
+      console.log("Response from API:", response);
+      if (response.status === 201) {
+        const { data } = response.data as any;
+        console.log("Paste created successfully:", data);
+        this.router.push(`/detail?id=${data.id}`);
+      }
     } catch (error) {
       alert("Failed to create paste. Please try again.");
       throw new Error("Failed to create paste");

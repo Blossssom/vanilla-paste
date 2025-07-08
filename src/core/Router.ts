@@ -111,6 +111,7 @@ export class Router {
       console.log(this.currentComponent);
       this.currentComponent.mount(this.$container!);
       this.currentRoute = newRouteInfo;
+      console.log("Current route updated:", this.currentRoute);
 
       this.emit("afterRouteChange", { to: newRouteInfo, from: oldRouteInfo });
     } catch (err) {
@@ -256,6 +257,11 @@ export class Router {
    */
   public getCurrentPath(): string {
     return window.location.pathname + window.location.search;
+  }
+
+  public getQueryParams(): Record<string, string> {
+    const search = window.location.search;
+    return this.parseQueryString(search);
   }
 
   public getCurrentRoute(): RouteInfo | null {

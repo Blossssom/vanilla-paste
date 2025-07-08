@@ -160,7 +160,6 @@ export abstract class Component<
       }
     });
 
-    console.log("prev state:", this.state);
     this.state = { ...this.state, ...newState };
     if (
       this.isMounted &&

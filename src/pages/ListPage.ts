@@ -30,10 +30,6 @@ export class ListPage extends Component<{}, ListPageState> {
         `;
   }
 
-  protected onUpdate(): void | Promise<void> {
-    console.log("ListPage updated with state:", this.state);
-  }
-
   protected updateDynamicContent(): void {
     const listContainer = this.$container?.querySelector(
       "#paste-list__container"
@@ -49,11 +45,12 @@ export class ListPage extends Component<{}, ListPageState> {
       event: "click",
       handler: (event) => {
         const target = event.target as HTMLElement;
+
         if (target.tagName === "BUTTON") {
           console.log("Clicked element:", target, target.tagName);
           const pasteId = target.getAttribute("data-paste-id");
           if (pasteId) {
-            this.router.push(`/detail/${pasteId}`);
+            this.router.push(`/detail?id=${pasteId}`);
           }
         }
       },
@@ -68,7 +65,6 @@ export class ListPage extends Component<{}, ListPageState> {
       });
       if (response.status === 200) {
         const { data } = response.data as any;
-        console.log(data.pastes);
         this.setState({
           listData: data.pastes ?? [],
         });
@@ -88,7 +84,7 @@ export class ListPage extends Component<{}, ListPageState> {
     return `${this.state.listData
       .map(
         (item) => `
-            <button class="w-full flex items-center justify-between" data-paste-id="${
+            <button class="w-full flex items-center justify-between button-with__span" data-paste-id="${
               item?.id
             }">
                 <span>${item?.title ?? "untitled"}</span>

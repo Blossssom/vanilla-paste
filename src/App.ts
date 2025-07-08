@@ -35,7 +35,7 @@ export class App extends Component {
         <div class="w-full h-full flex flex-col items-center relative">
             <div id="header" class="w-full max-w-5xl">
             </div>
-            <main class="w-full max-w-5xl relative">
+            <main class="w-full max-w-5xl ">
               <div class="gradient-wrapper">
                 <div class="gradient-item first"></div>
                 <div class="gradient-item second"></div>

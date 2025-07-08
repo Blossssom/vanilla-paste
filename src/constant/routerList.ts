@@ -17,7 +17,7 @@ export const routerList: RouteConfig[] = [
     exact: true,
   },
   {
-    path: "/detail/:id",
+    path: "/detail",
     component: DetailCodePage,
     name: "DetailCodePage",
     exact: true,

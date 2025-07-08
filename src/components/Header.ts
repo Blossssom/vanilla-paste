@@ -1,5 +1,6 @@
 import { Component } from "@/core/Component";
 import { useRouter } from "@/core/Router";
+import logoImage from "@/assets/images/dropnote_logo.png";
 
 interface HeaderState {
   currentPath: string;
@@ -16,13 +17,16 @@ export class Header extends Component<{}, HeaderState> {
 
   protected onMounted(): void | Promise<void> {
     this.setupNavigation();
+    document.querySelector<HTMLImageElement>("#logo-img")!.src = logoImage;
   }
 
   template(): string {
     return /*html */ `
-      <header class=" text-white p-4">
-       <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold">LOGO</h1>
+      <header class=" text-white p-4 max-h-16">
+       <div class="flex items-center justify-between w-full h-full ">
+        <h1 class="text-2xl font-bold text-[#2EC5F1]">
+         Drop Note
+        </h1>
         <nav>
           <ul class="flex gap-4 items-center font-bold">
             <li><button id="home-navigation" class="text-gray-300 hover:text-white">Home</Button></li>
@@ -57,11 +61,6 @@ export class Header extends Component<{}, HeaderState> {
 
   private handleNavigate(path: string): void {
     try {
-      if (this.state.currentPath === path) {
-        console.log("inner if");
-        return;
-      }
-
       this.setState({ currentPath: path });
       this.router.push(path);
     } catch (err) {
