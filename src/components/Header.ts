@@ -1,6 +1,5 @@
 import { Component } from "@/core/Component";
 import { useRouter } from "@/core/Router";
-import logoImage from "@/assets/images/dropnote_logo.png";
 
 interface HeaderState {
   currentPath: string;
@@ -17,7 +16,6 @@ export class Header extends Component<{}, HeaderState> {
 
   protected onMounted(): void | Promise<void> {
     this.setupNavigation();
-    document.querySelector<HTMLImageElement>("#logo-img")!.src = logoImage;
   }
 
   template(): string {
@@ -31,6 +29,7 @@ export class Header extends Component<{}, HeaderState> {
           <ul class="flex gap-4 items-center font-bold">
             <li><button id="home-navigation" class="text-gray-300 hover:text-white">Home</Button></li>
             <li><button id="list-navigation" class="text-gray-300 hover:text-white">List</Button></li>
+            <a href="./captch">captch</a>
           </ul>
         </nav>
        </div>

@@ -26,6 +26,7 @@ export class Router {
   private $container: HTMLElement | null = null;
   private listeners: Map<RouterEventType, Array<(data: any) => void>> =
     new Map();
+  private popstateHandler: (() => void) | null = null;
 
   constructor(container: HTMLElement) {
     this.$container = container;
@@ -37,7 +38,8 @@ export class Router {
     this.listeners.set("afterRouteChange", []);
     this.listeners.set("routeError", []);
 
-    window.addEventListener("popstate", () => this.handleRouteChange());
+    this.popstateHandler = this.handleRouteChange.bind(this);
+    window.addEventListener("popstate", this.popstateHandler);
     this.interceptLinks();
   }
 
@@ -248,7 +250,10 @@ export class Router {
       this.currentComponent = null;
     }
 
-    window.removeEventListener("popstate", this.handleRouteChange);
+    if (this.popstateHandler) {
+      window.removeEventListener("popstate", this.popstateHandler);
+      this.popstateHandler = null;
+    }
   }
 
   /**

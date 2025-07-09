@@ -25,6 +25,7 @@ export class MainPage extends Component<{}, MainPageState> {
   private placeholder: string = "Enter your paste title here";
   private codeChangeTimerId: number | NodeJS.Timeout | null = null;
   private router = useRouter();
+  private isSubmitting: boolean = false;
 
   constructor() {
     super();
@@ -46,7 +47,7 @@ export class MainPage extends Component<{}, MainPageState> {
             <img id="logo-img" class="object-containj w-24" />
             <div class="flex flex-col items-center gap-2">
               <h2 class="text-4xl font-bold">DROP NOTE</h2>
-              <p class="text-gray-600">Share your code snippets easily!</p>
+              <p class="text-neutral-400">Share your code snippets easily!</p>
             </div>
           </div>
           <article class="w-full h-full flex flex-col gap-4">
@@ -164,7 +165,20 @@ export class MainPage extends Component<{}, MainPageState> {
     }, 300);
   }
 
+  override unmount(): void {
+    if (this.codeChangeTimerId) {
+      this.clearTimeoutSafe(this.codeChangeTimerId);
+      this.codeChangeTimerId = null;
+    }
+    super.unmount();
+  }
+
   private async handleCreateButtonClick(): Promise<void> {
+    if (this.isSubmitting) {
+      return;
+    }
+
+    this.isSubmitting = true;
     const titleInput = document.getElementById(
       "paste-input__title"
     ) as HTMLInputElement;
@@ -185,6 +199,8 @@ export class MainPage extends Component<{}, MainPageState> {
     } catch (error) {
       alert("Failed to create paste. Please try again.");
       throw new Error("Failed to create paste");
+    } finally {
+      this.isSubmitting = false;
     }
   }
 }

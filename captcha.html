@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>reCAPTCHA v2 Test</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  </head>
+  <body>
+    <h1>reCAPTCHA v2 테스트</h1>
+
+    <form id="recaptcha-form">
+      <div
+        class="g-recaptcha"
+        data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+      ></div>
+      <br />
+      <button type="submit">서버로 토큰 전송</button>
+    </form>
+
+    <pre id="response"></pre>
+
+    <script>
+      document
+        .getElementById("recaptcha-form")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const token = grecaptcha.getResponse();
+          if (!token) {
+            alert("reCAPTCHA를 체크해주세요.");
+            return;
+          }
+
+          const res = await fetch(
+            "http://10.30.8.25:8080/api/v1/paste/recaptcha",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ token }),
+            }
+          );
+
+          const data = await res.json();
+          document.getElementById("response").textContent = JSON.stringify(
+            data,
+            null,
+            2
+          );
+        });
+    </script>
+  </body>
+</html>

@@ -5,6 +5,7 @@
 @theme {
   --color-midnight: #090040;
   --color-input__bg: #1e1e1e;
+  --color-secondary: #1d1a27;
 }
 
 @layer component {
@@ -22,6 +23,13 @@
     will-change: transform;
     animation: continuousRotate 16s linear infinite;
     overflow: hidden;
+  }
+
+  .list-header > div {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+    color: var(--color-neutral-400);
   }
 
   .gradient-item {
@@ -50,8 +58,19 @@
     background: #6923ff;
   }
 
-  .button-with__span > span {
+  .button-with__span {
+    padding: 12px 0;
+    border-radius: 6px;
+  }
+
+  .button-with__span > div {
+    width: 100%;
+    display: flex;
+    justify-content: center;
     pointer-events: none;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-neutral-100);
   }
 
   @keyframes continuousRotate {

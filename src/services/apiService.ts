@@ -13,6 +13,8 @@ interface ApiError {
 export class ApiService {
   private baseUrl: string;
   private defaultHeaders: HeadersInit;
+  private abortController: AbortController | null = null;
+  private pendingRequests: Map<string, AbortController> = new Map();
 
   constructor() {
     this.baseUrl = "http://10.30.8.25:8080/api/v1";
@@ -27,15 +29,36 @@ export class ApiService {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
+      const requestKey = `${options.method || 'GET'}-${url}`;
+      
+      // 기존 요청 취소
+      if (this.pendingRequests.has(requestKey)) {
+        this.pendingRequests.get(requestKey)!.abort();
+        this.pendingRequests.delete(requestKey);
+      }
+      
+      const controller = new AbortController();
+      this.pendingRequests.set(requestKey, controller);
+      
       const config: RequestInit = {
         ...options,
         headers: {
           ...this.defaultHeaders,
           ...options.headers,
         },
+        signal: controller.signal,
+        // 10초 타임아웃
       };
 
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+        this.pendingRequests.delete(requestKey);
+      }, 10000);
+
       const response = await fetch(url, config);
+      
+      clearTimeout(timeoutId);
+      this.pendingRequests.delete(requestKey);
 
       if (!response.ok) {
         throw new Error(
@@ -50,6 +73,14 @@ export class ApiService {
         status: response.status,
       };
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        throw {
+          status: 408,
+          message: 'Request timeout or cancelled',
+          details: null,
+        } as ApiError;
+      }
+      
       throw {
         status: (error as any).status || 500,
         message: (error as Error).message || "An error occurred",
@@ -88,6 +119,24 @@ export class ApiService {
     return this.request<T>(endpoint, {
       method: "DELETE",
     });
+  }
+
+  // 모든 진행 중인 요청 취소
+  cancelAllRequests(): void {
+    this.pendingRequests.forEach((controller) => {
+      controller.abort();
+    });
+    this.pendingRequests.clear();
+  }
+
+  // 특정 요청 취소
+  cancelRequest(endpoint: string, method: string = 'GET'): void {
+    const requestKey = `${method}-${this.baseUrl}${endpoint}`;
+    const controller = this.pendingRequests.get(requestKey);
+    if (controller) {
+      controller.abort();
+      this.pendingRequests.delete(requestKey);
+    }
   }
 }
 
