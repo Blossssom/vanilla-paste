@@ -100,8 +100,6 @@ export class MainPage extends Component<{}, MainPageState> {
     this.setState({
       expired: newExpired,
     });
-
-    console.log("Expired changed to:", this.state);
   }
 
   protected mountChildren(): void {
@@ -145,8 +143,9 @@ export class MainPage extends Component<{}, MainPageState> {
     this.addChild(
       Button,
       {
-        onClick: this.handleCreateButtonClick.bind(this),
+        id: "create-button",
         text: "Create",
+        onClick: this.handleCreateButtonClick.bind(this),
       },
       "#create-button__paste",
       "create-button__paste"
@@ -182,6 +181,12 @@ export class MainPage extends Component<{}, MainPageState> {
     const titleInput = document.getElementById(
       "paste-input__title"
     ) as HTMLInputElement;
+
+    if (titleInput.value.trim() === "") {
+      alert("Please enter a title for your paste.");
+      this.isSubmitting = false;
+      return;
+    }
     try {
       const response = await apiService.post("/paste", {
         content: this.state.code,
@@ -190,10 +195,8 @@ export class MainPage extends Component<{}, MainPageState> {
         title: titleInput.value,
       });
 
-      console.log("Response from API:", response);
       if (response.status === 201) {
         const { data } = response.data as any;
-        console.log("Paste created successfully:", data);
         this.router.push(`/detail?id=${data.id}`);
       }
     } catch (error) {

@@ -42,6 +42,10 @@ export class Editor extends Component<EditorProps, EditorState> {
         value: this.props.value || "// Type your code here",
         language: this.props.language || "plaintext",
         theme: "vs-dark",
+        padding: {
+          bottom: 10,
+          top: 10,
+        },
       });
 
       this.editor.onDidChangeModelContent(() => {

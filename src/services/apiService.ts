@@ -17,7 +17,8 @@ export class ApiService {
   private pendingRequests: Map<string, AbortController> = new Map();
 
   constructor() {
-    this.baseUrl = "http://10.30.8.25:8080/api/v1";
+    this.baseUrl = "http://10.30.8.25:8080/api/v1"; // 로컬 개발용
+    // this.baseUrl = "https://dropnote.onrender.com/api/v1";
     this.defaultHeaders = {
       "Content-Type": "application/json",
     };
@@ -29,17 +30,18 @@ export class ApiService {
   ): Promise<ApiResponse<T>> {
     try {
       const url = `${this.baseUrl}${endpoint}`;
-      const requestKey = `${options.method || 'GET'}-${url}`;
-      
+      console.log("inner url :", url);
+      const requestKey = `${options.method || "GET"}-${url}`;
+
       // 기존 요청 취소
       if (this.pendingRequests.has(requestKey)) {
         this.pendingRequests.get(requestKey)!.abort();
         this.pendingRequests.delete(requestKey);
       }
-      
+
       const controller = new AbortController();
       this.pendingRequests.set(requestKey, controller);
-      
+
       const config: RequestInit = {
         ...options,
         headers: {
@@ -47,7 +49,7 @@ export class ApiService {
           ...options.headers,
         },
         signal: controller.signal,
-        // 10초 타임아웃
+        credentials: "include",
       };
 
       const timeoutId = setTimeout(() => {
@@ -56,7 +58,7 @@ export class ApiService {
       }, 10000);
 
       const response = await fetch(url, config);
-      
+
       clearTimeout(timeoutId);
       this.pendingRequests.delete(requestKey);
 
@@ -73,14 +75,14 @@ export class ApiService {
         status: response.status,
       };
     } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
+      if (error instanceof DOMException && error.name === "AbortError") {
         throw {
           status: 408,
-          message: 'Request timeout or cancelled',
+          message: "Request timeout or cancelled",
           details: null,
         } as ApiError;
       }
-      
+
       throw {
         status: (error as any).status || 500,
         message: (error as Error).message || "An error occurred",
@@ -130,7 +132,7 @@ export class ApiService {
   }
 
   // 특정 요청 취소
-  cancelRequest(endpoint: string, method: string = 'GET'): void {
+  cancelRequest(endpoint: string, method: string = "GET"): void {
     const requestKey = `${method}-${this.baseUrl}${endpoint}`;
     const controller = this.pendingRequests.get(requestKey);
     if (controller) {

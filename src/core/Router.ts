@@ -110,10 +110,8 @@ export class Router {
 
     try {
       this.currentComponent = new matchedRoute.component();
-      console.log(this.currentComponent);
       this.currentComponent.mount(this.$container!);
       this.currentRoute = newRouteInfo;
-      console.log("Current route updated:", this.currentRoute);
 
       this.emit("afterRouteChange", { to: newRouteInfo, from: oldRouteInfo });
     } catch (err) {
@@ -283,7 +281,6 @@ export class Router {
 
   public push(path: string): void {
     if (this.getCurrentPath() === path) {
-      console.log("inner if");
       return;
     }
 

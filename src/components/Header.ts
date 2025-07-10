@@ -29,7 +29,6 @@ export class Header extends Component<{}, HeaderState> {
           <ul class="flex gap-4 items-center font-bold">
             <li><button id="home-navigation" class="text-gray-300 hover:text-white">Home</Button></li>
             <li><button id="list-navigation" class="text-gray-300 hover:text-white">List</Button></li>
-            <a href="./captch">captch</a>
           </ul>
         </nav>
        </div>

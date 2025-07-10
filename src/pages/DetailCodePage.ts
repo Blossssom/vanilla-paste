@@ -19,13 +19,15 @@ export class DetailCodePage extends Component<{}, DetailState> {
   }
 
   protected onMounted(): void | Promise<void> {
-    console.log(this.router.getCurrentPath());
     this.getPasteDetail();
   }
 
   template(): string {
     return /*html*/ `
       <div class="w-full flex flex-col ">
+        <div>
+          <button></button>
+        </div>
         <div class="w-full max-w-5xl p-4 h-[90vh] overflow-y-auto">
           <p class="text-gray-600">This is the detail code page for a specific paste.</p>
           <div id="editor-container" class="w-full h-full  max-h-3/4 text-left">
@@ -58,7 +60,6 @@ export class DetailCodePage extends Component<{}, DetailState> {
       const response = await apiService.get(`/paste/${pasteId.id}`);
       if (response.status === 200) {
         const { data } = response.data as any;
-        console.log("Fetched paste details:", data);
         this.setState({
           code: data.content,
           language: data.language || "plaintext",

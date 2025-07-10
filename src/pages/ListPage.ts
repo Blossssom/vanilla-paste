@@ -10,6 +10,7 @@ interface ListPageState {
 
 export class ListPage extends Component<{}, ListPageState> {
   private router = useRouter();
+  private PAGE_SCALE = 10;
   constructor() {
     super();
     this.state = {
@@ -26,7 +27,7 @@ export class ListPage extends Component<{}, ListPageState> {
 
   template(): string {
     return /*html*/ `
-            <div class="w-full h-full flex flex-col items-center justify-center">
+            <div class="w-full h-[80vh] flex flex-col items-center">
                 <div class="w-full flex items-center justify-between list-header border-b pb-3">
                   <div>
                     <span>Name</span>
@@ -41,7 +42,7 @@ export class ListPage extends Component<{}, ListPageState> {
                     <span>expired</span>
                   </div>  
                 </div>
-                <div id="paste-list__container" class="w-full flex flex-col gap-4 py-4">
+                <div id="paste-list__container" class="w-full h-full flex flex-col gap-4 py-4">
                     ${this.renderListContent()}
                 </div>
                 <div id="paste-list__pagination">
@@ -64,22 +65,25 @@ export class ListPage extends Component<{}, ListPageState> {
     }
 
     if (paginationContainer) {
-      const MAGIC_NUMBER = 10; // Number of pages to display
+      const MAGIC_NUMBER = 10;
+      const halfPageCount = Math.floor(MAGIC_NUMBER / 2);
+      let startPage = Math.max(1, this.state.currentPage - halfPageCount);
+      const endPage = startPage + MAGIC_NUMBER - 1;
+      if (endPage > this.state.totalPages) {
+        startPage = Math.max(1, this.state.totalPages - MAGIC_NUMBER + 1);
+      }
+
       const totalPageArray = Array.from(
-        { length: Math.ceil(this.state.totalPages / MAGIC_NUMBER) },
-        (_, i) => i + 1
+        { length: Math.min(MAGIC_NUMBER, this.state.totalPages) },
+        (_, i) => startPage + i
       );
 
-      console.log(
-        "total pages :",
-        this.state.totalPages,
-        MAGIC_NUMBER % this.state.totalPages,
-        Math.ceil(this.state.totalPages / MAGIC_NUMBER)
-      );
       paginationContainer.innerHTML = totalPageArray
         .map(
           (page) => `
-        <button class="px-4 py-2 bg-secondary hover:bg-secondary/80 rounded-md text-sm font-semibold">
+        <button class="px-4 py-2 rounded-md text-sm font-semibold ${
+          page === this.state.currentPage ? "bg-amber-200" : "bg-secondary"
+        }" data-pagination-id="${page}">
           ${page}
         </button>
       `
@@ -95,11 +99,29 @@ export class ListPage extends Component<{}, ListPageState> {
       handler: (event) => {
         const target = event.target as HTMLElement;
 
-        if (target.tagName === "BUTTON") {
-          console.log("Clicked element:", target, target.tagName);
+        if (
+          target.tagName === "BUTTON" &&
+          target.hasAttribute("data-paste-id")
+        ) {
           const pasteId = target.getAttribute("data-paste-id");
           if (pasteId) {
             this.router.push(`/detail?id=${pasteId}`);
+          }
+        }
+
+        if (
+          target.tagName === "BUTTON" &&
+          target.hasAttribute("data-pagination-id")
+        ) {
+          const page = parseInt(
+            target.getAttribute("data-pagination-id") || "1"
+          );
+          if (!isNaN(page) && page !== this.state.currentPage) {
+            this.setState({
+              currentPage: page,
+            });
+
+            this.getListData();
           }
         }
       },
@@ -114,12 +136,11 @@ export class ListPage extends Component<{}, ListPageState> {
      */
     try {
       const response = await apiService.get("/paste/list", {
-        page: 1,
-        scale: 2,
+        page: this.state.currentPage,
+        scale: this.PAGE_SCALE,
       });
       if (response.status === 200) {
         const { data } = response.data as any;
-        console.log("List data fetched successfully:", data);
         this.setState({
           listData: data.pastes ?? [],
           totalPages: data.total_page ?? 0,
