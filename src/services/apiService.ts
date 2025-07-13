@@ -17,8 +17,10 @@ export class ApiService {
   private pendingRequests: Map<string, AbortController> = new Map();
 
   constructor() {
-    this.baseUrl = "http://10.30.8.25:8080/api/v1"; // 로컬 개발용
-    // this.baseUrl = "https://dropnote.onrender.com/api/v1";
+    // this.baseUrl = "http://10.30.8.25:8080/api/v1"; // 로컬 개발용
+    this.baseUrl = import.meta.env.DEV
+      ? "http://10.30.8.25:8080/api/v1"
+      : "https://dropnote.onrender.com/api/v1"; // 프로덕션용
     this.defaultHeaders = {
       "Content-Type": "application/json",
     };
