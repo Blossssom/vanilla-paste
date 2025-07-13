@@ -13,7 +13,7 @@ interface ApiError {
 export class ApiService {
   private baseUrl: string;
   private defaultHeaders: HeadersInit;
-  private abortController: AbortController | null = null;
+  // private abortController: AbortController | null = null;
   private pendingRequests: Map<string, AbortController> = new Map();
 
   constructor() {

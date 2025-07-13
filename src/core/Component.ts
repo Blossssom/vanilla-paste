@@ -192,7 +192,7 @@ export abstract class Component<
    * @param key - 자식 컴포넌트를 식별하기 위한 키 (선택적)
    * @returns {T} - 마운트된 자식 컴포넌트 인스턴스
    */
-  protected addChild<T extends Component>(
+  protected addChild<T extends Component<any, any>>(
     childComponent: new (props: any) => T,
     props: any,
     parent: string,
