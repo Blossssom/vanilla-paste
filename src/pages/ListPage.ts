@@ -6,6 +6,7 @@ interface ListPageState {
   listData: any[];
   totalPages: number;
   currentPage: number;
+  isLoading: boolean;
 }
 
 export class ListPage extends Component<{}, ListPageState> {
@@ -17,12 +18,13 @@ export class ListPage extends Component<{}, ListPageState> {
       listData: [],
       totalPages: 0,
       currentPage: 1,
+      isLoading: true,
     };
   }
 
   protected async onMounted(): Promise<void> {
-    await this.getListData();
     this.setupEventListeners();
+    await this.getListData();
   }
 
   template(): string {
@@ -134,6 +136,8 @@ export class ListPage extends Component<{}, ListPageState> {
      * @Check - error_code 4401: captcha required
      *
      */
+    this.setState({ isLoading: true });
+
     try {
       const response = await apiService.get("/paste/list", {
         page: this.state.currentPage,
@@ -144,12 +148,14 @@ export class ListPage extends Component<{}, ListPageState> {
         this.setState({
           listData: data.pastes ?? [],
           totalPages: data.total_page ?? 0,
+          isLoading: false,
         });
         this.update();
       }
     } catch (error) {
       const { error_code } = error as any;
       console.error("Error fetching list data:", error);
+      this.setState({ isLoading: false });
       if (error_code === 4403) {
         alert("Too many requests. Please try again later.");
       }
@@ -157,6 +163,15 @@ export class ListPage extends Component<{}, ListPageState> {
   }
 
   private renderListContent(): string {
+    if (this.state.isLoading) {
+      return `
+        <div class="flex flex-col items-center justify-center text-gray-500 min-h-64">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
+          <span>Loading...</span>
+        </div>
+      `;
+    }
+
     if (this.state.listData.length === 0) {
       return `<div class="flex flex-col items-center justify-center text-gray-500 min-h-64">No data available</div>`;
     }

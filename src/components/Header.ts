@@ -22,7 +22,7 @@ export class Header extends Component<{}, HeaderState> {
     return /*html */ `
       <header class=" text-white p-4 max-h-16">
        <div class="flex items-center justify-between w-full h-full ">
-        <h1 class="text-2xl font-bold text-[#2EC5F1]">
+        <h1 class="text-2xl font-bold">
          Drop Note
         </h1>
         <nav>
