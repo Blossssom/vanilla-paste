@@ -40,37 +40,6 @@ export class Router {
 
     this.popstateHandler = this.handleRouteChange.bind(this);
     window.addEventListener("popstate", this.popstateHandler);
-    this.interceptLinks();
-  }
-
-  /**
-   * @description 내부 링크를 가로채 spa 링크로 처리
-   */
-  private interceptLinks(): void {
-    document.addEventListener("click", (event) => {
-      const target = event.target as HTMLElement;
-      const link = target.closest("a");
-
-      if (link && link.href && this.isInternalLink(link.href)) {
-        event.preventDefault();
-        const url = new URL(link.href);
-        this.push(url.pathname + url.search);
-      }
-    });
-  }
-
-  /**
-   * @param href - 링크의 href 속성
-   * @returns 내부 링크 여부
-   * @description 현재 페이지와 동일한 도메인인지 확인하여 내부 링크인지 판단
-   */
-  private isInternalLink(href: string): boolean {
-    try {
-      const url = new URL(href);
-      return url.origin === window.location.origin;
-    } catch (err) {
-      return false;
-    }
   }
 
   private async handleRouteChange(): Promise<void> {

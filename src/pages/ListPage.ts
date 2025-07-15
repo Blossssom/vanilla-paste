@@ -7,6 +7,7 @@ interface ListPageState {
   totalPages: number;
   currentPage: number;
   isLoading: boolean;
+  isError: boolean;
 }
 
 export class ListPage extends Component<{}, ListPageState> {
@@ -19,6 +20,7 @@ export class ListPage extends Component<{}, ListPageState> {
       totalPages: 0,
       currentPage: 1,
       isLoading: true,
+      isError: false,
     };
   }
 
@@ -101,6 +103,11 @@ export class ListPage extends Component<{}, ListPageState> {
       handler: (event) => {
         const target = event.target as HTMLElement;
 
+        if (target.id === "retry-button") {
+          this.getListData();
+          return;
+        }
+
         if (
           target.tagName === "BUTTON" &&
           target.hasAttribute("data-paste-id")
@@ -136,7 +143,7 @@ export class ListPage extends Component<{}, ListPageState> {
      * @Check - error_code 4401: captcha required
      *
      */
-    this.setState({ isLoading: true });
+    this.setState({ isLoading: true, isError: false });
 
     try {
       const response = await apiService.get("/paste/list", {
@@ -154,8 +161,7 @@ export class ListPage extends Component<{}, ListPageState> {
       }
     } catch (error) {
       const { error_code } = error as any;
-      console.error("Error fetching list data:", error);
-      this.setState({ isLoading: false });
+      this.setState({ isLoading: false, isError: true });
       if (error_code === 4403) {
         alert("Too many requests. Please try again later.");
       }
@@ -168,6 +174,15 @@ export class ListPage extends Component<{}, ListPageState> {
         <div class="flex flex-col items-center justify-center text-gray-500 min-h-64">
           <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mb-4"></div>
           <span>Loading...</span>
+        </div>
+      `;
+    }
+
+    if (this.state.isError) {
+      return /*html*/ `
+        <div>
+          <span class="text-red-500">An error occurred while fetching data.</span>
+          <button id="retry-button" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded">Retry</button>
         </div>
       `;
     }

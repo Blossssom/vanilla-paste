@@ -22,16 +22,19 @@ export class DetailCodePage extends Component<{}, DetailState> {
 
   protected onMounted(): void | Promise<void> {
     this.getPasteDetail();
+    this.setupEventListeners();
   }
 
   template(): string {
     return /*html*/ `
       <div class="w-full flex flex-col ">
-        <div>
-          <button></button>
-        </div>
+        
         <div class="w-full max-w-5xl p-4 h-[90vh] overflow-y-auto relative">
           <p class="text-gray-600">This is the detail code page for a specific paste.</p>
+          <div class="w-full  flex justify-end items-center gap-4">
+            <button id="code-button__print">print</button>
+            <button id="code-button__download">download</button>
+          </div>
           <div id="editor-container" class="w-full h-full max-h-3/4 text-left">
           </div>
           <div id="loading-state" >
@@ -53,6 +56,45 @@ export class DetailCodePage extends Component<{}, DetailState> {
       "#editor-container",
       "editor"
     );
+  }
+
+  private printHtml(): void {
+    window.print();
+  }
+
+  private setupEventListeners(): void {
+    this.addEventListenerSafe({
+      element: this.$container!,
+      event: "click",
+      handler: (event) => {
+        const target = event.target as HTMLElement;
+        event.stopPropagation();
+
+        switch (target.id) {
+          case "code-button__print": {
+            this.printHtml();
+            break;
+          }
+          case "code-button__download": {
+            this.downloadFile();
+            break;
+          }
+        }
+      },
+    });
+  }
+
+  private downloadFile(): void {
+    const blob = new Blob([this.state.code], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `paste-${Date.now()}.txt`;
+
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   private renderLoadingState(): string {
