@@ -29,6 +29,7 @@ export class Header extends Component<{}, HeaderState> {
           <ul class="flex gap-4 items-center font-bold">
             <li><button id="home-navigation" class="text-gray-300 hover:text-white">Home</Button></li>
             <li><button id="list-navigation" class="text-gray-300 hover:text-white">List</Button></li>
+            <li><button id="contact-navigation" class="text-gray-300 hover:text-white">About</button></li>
           </ul>
         </nav>
        </div>
@@ -50,6 +51,10 @@ export class Header extends Component<{}, HeaderState> {
           }
           case "list-navigation": {
             this.handleNavigate("/list");
+            break;
+          }
+          case "contact-navigation": {
+            this.handleNavigate("/contact");
             break;
           }
         }

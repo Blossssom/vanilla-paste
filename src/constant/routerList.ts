@@ -2,6 +2,7 @@ import type { RouteConfig } from "@/core/Router";
 import { MainPage } from "@/pages/MainPage";
 import { ListPage } from "@/pages/ListPage";
 import { DetailCodePage } from "@/pages/DetailCodePage";
+import { ContactPage } from "@/pages/ContactPage";
 
 export const routerList: RouteConfig[] = [
   {
@@ -22,8 +23,10 @@ export const routerList: RouteConfig[] = [
     name: "DetailCodePage",
     exact: true,
   },
-  // {
-  //   path: "/raw",
-
-  // }
+  {
+    path: "/contact",
+    component: ContactPage,
+    name: "ContactPage",
+    exact: true,
+  },
 ] as const;
