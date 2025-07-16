@@ -160,6 +160,7 @@ export class ListPage extends Component<{}, ListPageState> {
         this.update();
       }
     } catch (error) {
+      console.log("Error fetching list data:", error);
       const { error_code } = error as any;
       this.setState({ isLoading: false, isError: true });
       if (error_code === 4403) {
