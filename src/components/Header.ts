@@ -54,7 +54,7 @@ export class Header extends Component<{}, HeaderState> {
             break;
           }
           case "contact-navigation": {
-            this.handleNavigate("/contact");
+            this.handleNavigate("/about");
             break;
           }
         }

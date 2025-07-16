@@ -24,7 +24,7 @@ export const routerList: RouteConfig[] = [
     exact: true,
   },
   {
-    path: "/contact",
+    path: "/about",
     component: ContactPage,
     name: "ContactPage",
     exact: true,
